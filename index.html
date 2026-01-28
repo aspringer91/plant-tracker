@@ -1,0 +1,1506 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>30 Plants a Week Tracker</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: #f5f5f5;
+            padding: 20px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        /* Auth Screen */
+        .auth-container {
+            text-align: center;
+            padding: 60px 20px;
+        }
+        
+        .auth-container h1 {
+            color: #2d3748;
+            margin-bottom: 16px;
+            font-size: 32px;
+        }
+        
+        .auth-container p {
+            color: #718096;
+            margin-bottom: 32px;
+            font-size: 16px;
+        }
+        
+        .sign-in-btn {
+            background: #4285f4;
+            color: white;
+            border: none;
+            padding: 12px 32px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+            transition: background 0.2s;
+        }
+        
+        .sign-in-btn:hover {
+            background: #3367d6;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 60px 20px;
+            color: #718096;
+        }
+        
+        /* Main App Styles */
+        .app-container {
+            display: none;
+        }
+        
+        .app-container.active {
+            display: block;
+        }
+        
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+        
+        h1 {
+            color: #2d3748;
+            font-size: 28px;
+        }
+        
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .user-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+        }
+        
+        .sign-out-btn {
+            background: #e2e8f0;
+            color: #2d3748;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 13px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        
+        .sign-out-btn:hover {
+            background: #cbd5e0;
+        }
+        
+        .week-info {
+            color: #718096;
+            margin-bottom: 24px;
+            font-size: 14px;
+        }
+        
+        .tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 24px;
+            border-bottom: 2px solid #e2e8f0;
+        }
+        
+        .tab {
+            background: none;
+            border: none;
+            padding: 12px 20px;
+            font-size: 16px;
+            font-weight: 600;
+            color: #718096;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            margin-bottom: -2px;
+            transition: all 0.2s;
+        }
+        
+        .tab:hover {
+            background: #f7fafc;
+            color: #2d3748;
+        }
+        
+        .tab.active {
+            color: #667eea;
+            border-bottom-color: #667eea;
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+        
+        .section-header h3 {
+            color: #2d3748;
+            font-size: 18px;
+            margin: 0;
+        }
+        
+        .add-favorite-icon {
+            background: #48bb78;
+            color: white;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            cursor: pointer;
+            border: none;
+            transition: background 0.2s;
+        }
+        
+        .add-favorite-icon:hover {
+            background: #38a169;
+        }
+        
+        .counter {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 32px;
+            border-radius: 12px;
+            text-align: center;
+            margin-bottom: 24px;
+        }
+        
+        .counter-number {
+            font-size: 64px;
+            font-weight: bold;
+            line-height: 1;
+        }
+        
+        .counter-label {
+            font-size: 18px;
+            opacity: 0.9;
+            margin-top: 8px;
+        }
+        
+        .progress-section {
+            margin-top: 20px;
+        }
+        
+        .progress-bar-container {
+            width: 100%;
+            height: 12px;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 10px;
+            overflow: hidden;
+            margin-bottom: 8px;
+        }
+        
+        .progress-bar {
+            height: 100%;
+            background: white;
+            border-radius: 10px;
+            transition: width 0.5s ease;
+            box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+        }
+        
+        .progress-text {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+        
+        .goal-reached {
+            background: linear-gradient(135deg, #48bb78 0%, #38a169 100%) !important;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.02); }
+        }
+        
+        .celebration {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+            z-index: 1000;
+            text-align: center;
+            animation: slideIn 0.5s ease;
+        }
+        
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translate(-50%, -60%);
+            }
+            to {
+                opacity: 1;
+                transform: translate(-50%, -50%);
+            }
+        }
+        
+        .celebration-emoji {
+            font-size: 80px;
+            margin-bottom: 20px;
+            animation: bounce 1s infinite;
+        }
+        
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-20px); }
+        }
+        
+        .celebration h2 {
+            color: #48bb78;
+            font-size: 32px;
+            margin-bottom: 10px;
+        }
+        
+        .celebration p {
+            color: #2d3748;
+            font-size: 18px;
+            margin-bottom: 20px;
+        }
+        
+        .celebration button {
+            background: #48bb78;
+        }
+        
+        .celebration button:hover {
+            background: #38a169;
+        }
+        
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 999;
+        }
+        
+        /* Toast notification */
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #2d3748;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            z-index: 1001;
+            animation: slideUp 0.3s ease;
+            max-width: 90%;
+            text-align: center;
+        }
+        
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translate(-50%, 20px);
+            }
+            to {
+                opacity: 1;
+                transform: translate(-50%, 0);
+            }
+        }
+        
+        .toast.hide {
+            animation: slideDown 0.3s ease;
+        }
+        
+        @keyframes slideDown {
+            from {
+                opacity: 1;
+                transform: translate(-50%, 0);
+            }
+            to {
+                opacity: 0;
+                transform: translate(-50%, 20px);
+            }
+        }
+        
+        .favorites-section {
+            margin-bottom: 24px;
+            padding: 16px;
+            background: #f7fafc;
+            border-radius: 8px;
+        }
+        
+        .favorites-section h3 {
+            color: #2d3748;
+            font-size: 16px;
+            margin-bottom: 12px;
+        }
+        
+        .favorites-chips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        
+        .favorite-chip {
+            background: white;
+            color: #2d3748;
+            padding: 8px 12px 8px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 2px solid transparent;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .favorite-chip:hover {
+            background: #667eea;
+            color: white;
+            transform: translateY(-1px);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+        }
+        
+        .favorite-chip:active {
+            transform: scale(0.95);
+        }
+        
+        .remove-favorite {
+            color: #a0aec0;
+            font-weight: bold;
+            font-size: 16px;
+            line-height: 1;
+            transition: color 0.2s;
+        }
+        
+        .favorite-chip:hover .remove-favorite {
+            color: white;
+        }
+        
+        .input-section {
+            margin-bottom: 24px;
+        }
+        
+        .input-group {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+        
+        input[type="text"] {
+            flex: 1;
+            padding: 12px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.2s;
+        }
+        
+        input[type="text"]:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        
+        button:hover {
+            background: #5568d3;
+        }
+        
+        button:active {
+            transform: scale(0.98);
+        }
+        
+        .empty-state {
+            text-align: center;
+            color: #a0aec0;
+            padding: 32px;
+            font-style: italic;
+        }
+        
+        .reset-btn {
+            background: #a0aec0;
+            width: 100%;
+            margin-top: 16px;
+        }
+        
+        .reset-btn:hover {
+            background: #718096;
+        }
+        
+        /* Daily Grid Styles */
+        .grid-section {
+            margin-bottom: 24px;
+        }
+        
+        .grid-section h3 {
+            color: #2d3748;
+            font-size: 18px;
+            margin-bottom: 16px;
+        }
+        
+        .grid-controls {
+            margin-bottom: 16px;
+        }
+        
+        .grid-container {
+            overflow-x: auto;
+            margin-bottom: 16px;
+        }
+        
+        .daily-grid {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 600px;
+        }
+        
+        .daily-grid th {
+            background: #667eea;
+            color: white;
+            padding: 12px 8px;
+            text-align: center;
+            font-weight: 600;
+            font-size: 14px;
+        }
+        
+        .daily-grid th:first-child {
+            text-align: left;
+            padding-left: 12px;
+            width: 200px;
+        }
+        
+        .daily-grid .totals-row {
+            background: #edf2f7;
+            font-weight: 600;
+        }
+        
+        .daily-grid .totals-row td {
+            text-align: center;
+            padding: 10px 8px;
+            border: 1px solid #cbd5e0;
+            color: #2d3748;
+            font-size: 14px;
+        }
+        
+        .daily-grid .totals-row td:first-child {
+            text-align: left;
+            padding-left: 12px;
+        }
+        
+        .daily-grid td {
+            padding: 12px 8px;
+            border: 1px solid #e2e8f0;
+            text-align: center;
+        }
+        
+        .daily-grid td:first-child {
+            text-align: left;
+            padding-left: 12px;
+            font-weight: 500;
+            color: #2d3748;
+            background: #f7fafc;
+        }
+        
+        .daily-grid tr:hover td {
+            background: #f7fafc;
+        }
+        
+        .day-checkbox {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+            accent-color: #667eea;
+        }
+        
+        .delete-row-btn {
+            background: #fc8181;
+            padding: 2px 6px;
+            font-size: 14px;
+            font-weight: bold;
+            margin-right: 8px;
+            border-radius: 4px;
+            min-width: 24px;
+        }
+        
+        .delete-row-btn:hover {
+            background: #f56565;
+        }
+        
+        /* History Styles */
+        .history-list {
+            margin-bottom: 16px;
+        }
+        
+        .history-item {
+            background: #f7fafc;
+            padding: 16px;
+            border-radius: 8px;
+            margin-bottom: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 2px solid transparent;
+        }
+        
+        .history-item:hover {
+            background: #edf2f7;
+            border-color: #667eea;
+        }
+        
+        .history-item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+        
+        .history-week {
+            font-weight: 600;
+            color: #2d3748;
+            font-size: 16px;
+        }
+        
+        .history-count {
+            background: #667eea;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 600;
+        }
+        
+        .history-count.goal-met {
+            background: #48bb78;
+        }
+        
+        .history-date {
+            color: #718096;
+            font-size: 14px;
+        }
+        
+        .week-detail {
+            margin-top: 24px;
+            padding: 16px;
+            background: #f7fafc;
+            border-radius: 8px;
+        }
+        
+        .week-detail-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+        
+        .week-detail h3 {
+            color: #2d3748;
+            font-size: 18px;
+        }
+        
+        .back-btn {
+            background: #a0aec0;
+            padding: 6px 12px;
+            font-size: 13px;
+        }
+        
+        .back-btn:hover {
+            background: #718096;
+        }
+        
+        .plant-detail-item {
+            background: white;
+            padding: 8px 10px;
+            border-radius: 6px;
+            margin-bottom: 6px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .plant-detail-item:last-child {
+            margin-bottom: 0;
+        }
+        
+        .plant-detail-name {
+            font-weight: 500;
+            color: #2d3748;
+            font-size: 14px;
+        }
+        
+        .plant-detail-days {
+            color: #718096;
+            font-size: 12px;
+        }
+        
+        /* Top Plants Styles */
+        .top-plants-section {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 16px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            color: white;
+        }
+        
+        .top-plants-section h3 {
+            font-size: 16px;
+            margin-bottom: 12px;
+            font-weight: 600;
+        }
+        
+        .top-plant-item {
+            background: rgba(255, 255, 255, 0.15);
+            padding: 8px 12px;
+            border-radius: 6px;
+            margin-bottom: 6px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            backdrop-filter: blur(10px);
+        }
+        
+        .top-plant-item:last-child {
+            margin-bottom: 0;
+        }
+        
+        .top-plant-rank {
+            font-size: 16px;
+            margin-right: 10px;
+        }
+        
+        .top-plant-info {
+            flex: 1;
+        }
+        
+        .top-plant-name {
+            font-weight: 500;
+            font-size: 14px;
+        }
+        
+        .top-plant-count {
+            font-size: 14px;
+            font-weight: 600;
+            opacity: 0.9;
+        }
+        
+        .sync-status {
+            text-align: center;
+            padding: 8px;
+            font-size: 12px;
+            color: #718096;
+            background: #f7fafc;
+            border-radius: 6px;
+            margin-bottom: 16px;
+        }
+        
+        .sync-status.syncing {
+            color: #4299e1;
+        }
+        
+        .sync-status.synced {
+            color: #48bb78;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Auth Screen -->
+        <div id="authContainer" class="auth-container">
+            <h1>🌱 Plant Tracker</h1>
+            <p>Track your 30 plants a week goal</p>
+            <button class="sign-in-btn" onclick="signInWithGoogle()">
+                <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                    <path d="M19.6 10.227c0-.709-.064-1.39-.182-2.045H10v3.868h5.382a4.6 4.6 0 01-1.996 3.018v2.51h3.232c1.891-1.742 2.982-4.305 2.982-7.35z" fill="#4285F4"/>
+                    <path d="M10 20c2.7 0 4.964-.895 6.618-2.423l-3.232-2.509c-.895.6-2.04.955-3.386.955-2.605 0-4.81-1.76-5.595-4.123H1.064v2.59A9.996 9.996 0 0010 20z" fill="#34A853"/>
+                    <path d="M4.405 11.9c-.2-.6-.314-1.24-.314-1.9 0-.66.114-1.3.314-1.9V5.51H1.064A9.996 9.996 0 000 10c0 1.614.386 3.14 1.064 4.49l3.34-2.59z" fill="#FBBC05"/>
+                    <path d="M10 3.977c1.468 0 2.786.505 3.823 1.496l2.868-2.868C14.959.99 12.695 0 10 0 6.09 0 2.71 2.24 1.064 5.51l3.34 2.59C5.19 5.736 7.395 3.977 10 3.977z" fill="#EA4335"/>
+                </svg>
+                Sign in with Google
+            </button>
+        </div>
+        
+        <!-- Loading Screen -->
+        <div id="loadingContainer" class="loading" style="display: none;">
+            <p>Loading...</p>
+        </div>
+        
+        <!-- Main App -->
+        <div id="appContainer" class="app-container">
+            <div class="header">
+                <h1>🌱 Plant Tracker</h1>
+                <div class="user-info">
+                    <img id="userAvatar" class="user-avatar" src="" alt="">
+                    <button class="sign-out-btn" onclick="signOut()">Sign Out</button>
+                </div>
+            </div>
+            
+            <div class="sync-status" id="syncStatus">Synced</div>
+            
+            <div class="week-info" id="weekInfo">Loading...</div>
+            
+            <div class="tabs">
+                <button class="tab active" onclick="switchTab('tracker')">Tracker</button>
+                <button class="tab" onclick="switchTab('history')">History</button>
+            </div>
+            
+            <!-- Tracker Tab -->
+            <div id="trackerTab" class="tab-content active">
+                <div class="counter" id="counterBox">
+                    <div class="counter-number" id="plantCount">0</div>
+                    <div class="counter-label">plants this week</div>
+                    <div class="progress-section">
+                        <div class="progress-bar-container">
+                            <div class="progress-bar" id="progressBar"></div>
+                        </div>
+                        <div class="progress-text" id="progressText">0 of 30 plants</div>
+                    </div>
+                </div>
+                
+                <!-- Favorites Section -->
+                <div class="favorites-section">
+                    <div class="section-header">
+                        <h3>Favorites</h3>
+                        <button class="add-favorite-icon" onclick="showAddFavoritePrompt()" title="Add favorite">+</button>
+                    </div>
+                    <div class="favorites-chips" id="favoritesChips"></div>
+                </div>
+                
+                <!-- Add Plant Section -->
+                <div class="input-section">
+                    <div class="input-group">
+                        <input 
+                            type="text" 
+                            id="plantInput" 
+                            placeholder="Add plant for today"
+                            autocomplete="off"
+                        >
+                        <button onclick="addPlant()">Add</button>
+                    </div>
+                </div>
+                
+                <!-- Daily Grid Section -->
+                <div class="grid-section">
+                    <h3>This Week</h3>
+                    <div class="grid-container">
+                        <table class="daily-grid" id="dailyGrid">
+                            <thead>
+                                <tr>
+                                    <th>Plant</th>
+                                    <th>Mon</th>
+                                    <th>Tue</th>
+                                    <th>Wed</th>
+                                    <th>Thu</th>
+                                    <th>Fri</th>
+                                    <th>Sat</th>
+                                    <th>Sun</th>
+                                </tr>
+                            </thead>
+                            <tbody id="gridBody">
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <button class="reset-btn" onclick="resetWeek()">Reset Week</button>
+            </div>
+            
+            <!-- History Tab -->
+            <div id="historyTab" class="tab-content">
+                <div id="topPlantsSection"></div>
+                <div id="historyList" class="history-list"></div>
+                <div id="weekDetail" style="display: none;"></div>
+            </div>
+        </div>
+    </div>
+    
+    <div id="celebrationModal" style="display: none;">
+        <div class="overlay" onclick="closeCelebration()"></div>
+        <div class="celebration">
+            <div class="celebration-emoji">🎉</div>
+            <h2>Amazing!</h2>
+            <p>You've reached 30 plants this week!</p>
+            <p>Keep up the great work! 🌱</p>
+            <button onclick="closeCelebration()">Continue</button>
+        </div>
+    </div>
+    
+    <div id="toast"></div>
+
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+
+    <script>
+        // ============================================
+        // FIREBASE CONFIGURATION
+        // ============================================
+        // TODO: Replace with your Firebase config
+        const firebaseConfig = {
+            apiKey: "AIzaSyAOBvc1DAIdIIQc_KnyChLBS-n5xlzKx-E",
+            authDomain: "plant-tracker-a35a1.firebaseapp.com",
+            projectId: "plant-tracker-a35a1",
+            storageBucket: "plant-tracker-a35a1.firebasestorage.app",
+            messagingSenderId: "1010461083857",
+            appId: "1:1010461083857:web:94f34e2197044363b21df0"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+        
+        // ============================================
+        // GLOBAL STATE
+        // ============================================
+        const GOAL = 30;
+        const DAYS = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
+        let currentUser = null;
+        let currentWeekData = null;
+        let favoritesData = [];
+        let historyData = {};
+        let unsubscribeSnapshot = null;
+        
+        // ============================================
+        // AUTHENTICATION
+        // ============================================
+        auth.onAuthStateChanged(user => {
+            if (user) {
+                currentUser = user;
+                document.getElementById('authContainer').style.display = 'none';
+                document.getElementById('loadingContainer').style.display = 'block';
+                document.getElementById('userAvatar').src = user.photoURL || '';
+                
+                // Subscribe to real-time updates
+                subscribeToUserData();
+            } else {
+                currentUser = null;
+                document.getElementById('authContainer').style.display = 'block';
+                document.getElementById('appContainer').classList.remove('active');
+                document.getElementById('loadingContainer').style.display = 'none';
+                
+                if (unsubscribeSnapshot) {
+                    unsubscribeSnapshot();
+                }
+            }
+        });
+        
+        async function signInWithGoogle() {
+            try {
+                const provider = new firebase.auth.GoogleAuthProvider();
+                await auth.signInWithPopup(provider);
+            } catch (error) {
+                console.error('Sign in error:', error);
+                alert('Failed to sign in. Please try again.');
+            }
+        }
+        
+        async function signOut() {
+            if (confirm('Are you sure you want to sign out?')) {
+                try {
+                    await auth.signOut();
+                } catch (error) {
+                    console.error('Sign out error:', error);
+                }
+            }
+        }
+        
+        // ============================================
+        // FIRESTORE REAL-TIME SYNC
+        // ============================================
+        function subscribeToUserData() {
+            const userDoc = db.collection('users').doc(currentUser.uid);
+            
+            unsubscribeSnapshot = userDoc.onSnapshot(async (doc) => {
+                setSyncStatus('syncing');
+                
+                if (doc.exists) {
+                    const data = doc.data();
+                    currentWeekData = data.currentWeek || { weekKey: getWeekKey(), dailyGrid: {}, goalReached: false };
+                    favoritesData = data.favorites || [];
+                    historyData = data.history || {};
+                    
+                    // Check if we've moved to a new week
+                    if (currentWeekData.weekKey !== getWeekKey()) {
+                        // Save old week to history
+                        if (Object.keys(currentWeekData.dailyGrid).length > 0) {
+                            historyData[currentWeekData.weekKey] = {
+                                dailyGrid: currentWeekData.dailyGrid,
+                                goalReached: currentWeekData.goalReached || false,
+                                plantCount: calculatePlantCount(currentWeekData.dailyGrid)
+                            };
+                        }
+                        
+                        // Start new week
+                        currentWeekData = { weekKey: getWeekKey(), dailyGrid: {}, goalReached: false };
+                        
+                        // Save to Firestore
+                        await userDoc.set({
+                            currentWeek: currentWeekData,
+                            favorites: favoritesData,
+                            history: historyData
+                        });
+                    }
+                } else {
+                    // First time user
+                    currentWeekData = { weekKey: getWeekKey(), dailyGrid: {}, goalReached: false };
+                    favoritesData = [];
+                    historyData = {};
+                    
+                    await userDoc.set({
+                        currentWeek: currentWeekData,
+                        favorites: favoritesData,
+                        history: historyData
+                    });
+                }
+                
+                document.getElementById('loadingContainer').style.display = 'none';
+                document.getElementById('appContainer').classList.add('active');
+                
+                render();
+                setSyncStatus('synced');
+            }, (error) => {
+                console.error('Snapshot error:', error);
+                alert('Error syncing data. Please refresh the page.');
+            });
+        }
+        
+        async function saveToFirestore() {
+            if (!currentUser) return;
+            
+            setSyncStatus('syncing');
+            
+            try {
+                await db.collection('users').doc(currentUser.uid).set({
+                    currentWeek: currentWeekData,
+                    favorites: favoritesData,
+                    history: historyData
+                });
+                
+                setSyncStatus('synced');
+            } catch (error) {
+                console.error('Save error:', error);
+                showToast('Failed to sync. Changes saved locally.');
+            }
+        }
+        
+        function setSyncStatus(status) {
+            const statusEl = document.getElementById('syncStatus');
+            statusEl.className = 'sync-status ' + status;
+            
+            if (status === 'syncing') {
+                statusEl.textContent = 'Syncing...';
+            } else if (status === 'synced') {
+                statusEl.textContent = '✓ Synced';
+            }
+        }
+        
+        // ============================================
+        // UTILITY FUNCTIONS
+        // ============================================
+        function toTitleCase(str) {
+            return str.toLowerCase().split(' ').map(word => 
+                word.charAt(0).toUpperCase() + word.slice(1)
+            ).join(' ');
+        }
+        
+        function getWeekKey() {
+            const now = new Date();
+            const startOfYear = new Date(now.getFullYear(), 0, 1);
+            const days = Math.floor((now - startOfYear) / (24 * 60 * 60 * 1000));
+            const weekNumber = Math.ceil((days + startOfYear.getDay() + 1) / 7);
+            return `${now.getFullYear()}-W${weekNumber}`;
+        }
+        
+        function getWeekDisplay(weekKey) {
+            if (!weekKey) {
+                weekKey = getWeekKey();
+            }
+            
+            const [year, weekStr] = weekKey.split('-W');
+            const weekNum = parseInt(weekStr);
+            
+            const jan1 = new Date(year, 0, 1);
+            const daysOffset = (weekNum - 1) * 7 - jan1.getDay() + 1;
+            const monday = new Date(year, 0, 1 + daysOffset);
+            const sunday = new Date(monday);
+            sunday.setDate(monday.getDate() + 6);
+            
+            const options = { month: 'short', day: 'numeric' };
+            return `Week of ${monday.toLocaleDateString('en-US', options)} - ${sunday.toLocaleDateString('en-US', options)}`;
+        }
+        
+        function getTodayKey() {
+            return DAYS[new Date().getDay()];
+        }
+        
+        function calculatePlantCount(dailyGrid) {
+            const uniquePlants = new Set();
+            Object.keys(dailyGrid).forEach(plant => {
+                const days = dailyGrid[plant];
+                if (Object.values(days).some(checked => checked)) {
+                    uniquePlants.add(plant);
+                }
+            });
+            return uniquePlants.size;
+        }
+        
+        function getTotalUniquePlants() {
+            return calculatePlantCount(currentWeekData.dailyGrid);
+        }
+        
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+        
+        // ============================================
+        // UI FUNCTIONS
+        // ============================================
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.className = 'toast';
+            
+            setTimeout(() => {
+                toast.classList.add('hide');
+                setTimeout(() => {
+                    toast.className = '';
+                }, 300);
+            }, 2000);
+        }
+        
+        function showCelebration() {
+            document.getElementById('celebrationModal').style.display = 'block';
+        }
+        
+        function closeCelebration() {
+            document.getElementById('celebrationModal').style.display = 'none';
+        }
+        
+        function switchTab(tab) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            
+            if (tab === 'tracker') {
+                document.querySelector('.tab:nth-child(1)').classList.add('active');
+                document.getElementById('trackerTab').classList.add('active');
+                render();
+            } else if (tab === 'history') {
+                document.querySelector('.tab:nth-child(2)').classList.add('active');
+                document.getElementById('historyTab').classList.add('active');
+                renderHistory();
+            }
+        }
+        
+        function updateProgress(previousCount) {
+            const count = getTotalUniquePlants();
+            const percentage = Math.min((count / GOAL) * 100, 100);
+            
+            document.getElementById('plantCount').textContent = count;
+            document.getElementById('progressBar').style.width = percentage + '%';
+            document.getElementById('progressText').textContent = `${count} of ${GOAL} plants`;
+            
+            const counterBox = document.getElementById('counterBox');
+            if (count >= GOAL) {
+                counterBox.classList.add('goal-reached');
+            } else {
+                counterBox.classList.remove('goal-reached');
+            }
+            
+            if (count >= GOAL && previousCount < GOAL && !currentWeekData.goalReached) {
+                currentWeekData.goalReached = true;
+                saveToFirestore();
+                showCelebration();
+            }
+        }
+        
+        function render() {
+            if (!currentWeekData) return;
+            
+            document.getElementById('weekInfo').textContent = getWeekDisplay();
+            
+            const previousCount = getTotalUniquePlants();
+            
+            renderFavorites();
+            renderDailyGrid();
+            
+            updateProgress(previousCount);
+        }
+        
+        function renderFavorites() {
+            const container = document.getElementById('favoritesChips');
+            const favorites = [...favoritesData].sort();
+            
+            if (favorites.length === 0) {
+                container.innerHTML = '<div style="color: #a0aec0; font-style: italic; font-size: 14px;">No favorites yet - click the + to add some!</div>';
+                return;
+            }
+            
+            container.innerHTML = favorites.map(fav => `
+                <div class="favorite-chip" onclick="addPlantFromFavorite('${escapeHtml(fav)}')" title="Click to add for today">
+                    <span>${toTitleCase(escapeHtml(fav))}</span>
+                    <span class="remove-favorite" onclick="event.stopPropagation(); removeFavorite('${escapeHtml(fav)}')" title="Remove from favorites">×</span>
+                </div>
+            `).join('');
+        }
+        
+        function renderDailyGrid() {
+            const tbody = document.getElementById('gridBody');
+            const plants = Object.keys(currentWeekData.dailyGrid).sort();
+            
+            if (plants.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="8" class="empty-state">No plants added yet this week</td></tr>';
+                return;
+            }
+            
+            // Calculate daily totals
+            const dailyTotals = {
+                mon: 0, tue: 0, wed: 0, thu: 0, fri: 0, sat: 0, sun: 0
+            };
+            
+            plants.forEach(plant => {
+                const days = currentWeekData.dailyGrid[plant];
+                ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'].forEach(day => {
+                    if (days[day]) {
+                        dailyTotals[day]++;
+                    }
+                });
+            });
+            
+            // Build totals row
+            const totalsRow = `
+                <tr class="totals-row">
+                    <td>Daily Total</td>
+                    ${['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'].map(day => `
+                        <td>${dailyTotals[day]}</td>
+                    `).join('')}
+                </tr>
+            `;
+            
+            // Build plant rows
+            const plantRows = plants.map(plant => {
+                const days = currentWeekData.dailyGrid[plant] || {};
+                return `
+                    <tr>
+                        <td>
+                            <button class="delete-row-btn" onclick="deleteGridRow('${escapeHtml(plant)}')">×</button>
+                            ${toTitleCase(escapeHtml(plant))}
+                        </td>
+                        ${['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'].map(day => `
+                            <td>
+                                <input 
+                                    type="checkbox" 
+                                    class="day-checkbox" 
+                                    ${days[day] ? 'checked' : ''}
+                                    onchange="toggleDay('${escapeHtml(plant)}', '${day}', this.checked)"
+                                >
+                            </td>
+                        `).join('')}
+                    </tr>
+                `;
+            }).join('');
+            
+            tbody.innerHTML = totalsRow + plantRows;
+        }
+        
+        // ============================================
+        // PLANT MANAGEMENT
+        // ============================================
+        function addPlant() {
+            const input = document.getElementById('plantInput');
+            const plantName = input.value.trim().toLowerCase();
+            
+            if (!plantName) return;
+            
+            const previousCount = getTotalUniquePlants();
+            const today = getTodayKey();
+            
+            if (currentWeekData.dailyGrid[plantName]) {
+                currentWeekData.dailyGrid[plantName][today] = true;
+                showToast(`${toTitleCase(plantName)} already in your list - marked for today!`);
+            } else {
+                currentWeekData.dailyGrid[plantName] = {
+                    mon: false, tue: false, wed: false, thu: false,
+                    fri: false, sat: false, sun: false
+                };
+                currentWeekData.dailyGrid[plantName][today] = true;
+            }
+            
+            input.value = '';
+            saveToFirestore();
+            render();
+        }
+        
+        function addPlantFromFavorite(plantName) {
+            const normalized = plantName.toLowerCase();
+            const previousCount = getTotalUniquePlants();
+            const today = getTodayKey();
+            
+            if (currentWeekData.dailyGrid[normalized]) {
+                currentWeekData.dailyGrid[normalized][today] = true;
+                showToast(`${toTitleCase(normalized)} already in your list - marked for today!`);
+            } else {
+                currentWeekData.dailyGrid[normalized] = {
+                    mon: false, tue: false, wed: false, thu: false,
+                    fri: false, sat: false, sun: false
+                };
+                currentWeekData.dailyGrid[normalized][today] = true;
+            }
+            
+            saveToFirestore();
+            render();
+        }
+        
+        function toggleDay(plant, day, checked) {
+            const previousCount = getTotalUniquePlants();
+            
+            if (!currentWeekData.dailyGrid[plant]) {
+                currentWeekData.dailyGrid[plant] = {
+                    mon: false, tue: false, wed: false, thu: false,
+                    fri: false, sat: false, sun: false
+                };
+            }
+            
+            currentWeekData.dailyGrid[plant][day] = checked;
+            saveToFirestore();
+            render();
+        }
+        
+        function deleteGridRow(plant) {
+            if (!confirm(`Remove "${toTitleCase(plant)}" from the grid?`)) return;
+            
+            delete currentWeekData.dailyGrid[plant];
+            saveToFirestore();
+            render();
+        }
+        
+        function resetWeek() {
+            if (confirm('Are you sure you want to reset this week? This will clear all plants from the grid.')) {
+                currentWeekData = { weekKey: getWeekKey(), dailyGrid: {}, goalReached: false };
+                saveToFirestore();
+                render();
+            }
+        }
+        
+        // ============================================
+        // FAVORITES MANAGEMENT
+        // ============================================
+        function showAddFavoritePrompt() {
+            const favName = prompt('Enter plant name to add to favorites:');
+            if (favName === null) return;
+            
+            const normalized = favName.trim().toLowerCase();
+            if (!normalized) return;
+            
+            if (favoritesData.includes(normalized)) {
+                alert('This favorite already exists!');
+                return;
+            }
+            
+            favoritesData.push(normalized);
+            saveToFirestore();
+            render();
+        }
+        
+        function removeFavorite(favName) {
+            if (!confirm(`Remove "${toTitleCase(favName)}" from favorites?`)) return;
+            
+            const normalized = favName.toLowerCase();
+            const index = favoritesData.indexOf(normalized);
+            
+            if (index > -1) {
+                favoritesData.splice(index, 1);
+                saveToFirestore();
+                render();
+            }
+        }
+        
+        // ============================================
+        // HISTORY
+        // ============================================
+        function renderHistory() {
+            const historyList = document.getElementById('historyList');
+            const weekDetail = document.getElementById('weekDetail');
+            
+            historyList.style.display = 'block';
+            weekDetail.style.display = 'none';
+            
+            renderTopPlants();
+            
+            const weeks = Object.keys(historyData).sort().reverse();
+            
+            if (weeks.length === 0) {
+                historyList.innerHTML = '<div class="empty-state">No history yet - complete your first week to see it here!</div>';
+                return;
+            }
+            
+            historyList.innerHTML = weeks.map(weekKey => {
+                const weekData = historyData[weekKey];
+                const countClass = weekData.plantCount >= GOAL ? 'goal-met' : '';
+                return `
+                    <div class="history-item" onclick="showWeekDetail('${weekKey}')">
+                        <div class="history-item-header">
+                            <span class="history-week">${getWeekDisplay(weekKey)}</span>
+                            <span class="history-count ${countClass}">${weekData.plantCount} plants</span>
+                        </div>
+                        <div class="history-date">${weekKey}</div>
+                    </div>
+                `;
+            }).join('');
+        }
+        
+        function renderTopPlants() {
+            const topPlantsSection = document.getElementById('topPlantsSection');
+            const weeks = Object.keys(historyData).sort().reverse().slice(0, 4);
+            
+            if (weeks.length === 0) {
+                topPlantsSection.innerHTML = '';
+                return;
+            }
+            
+            const plantDayCounts = {};
+            
+            weeks.forEach(weekKey => {
+                const weekData = historyData[weekKey];
+                Object.keys(weekData.dailyGrid).forEach(plant => {
+                    const days = weekData.dailyGrid[plant];
+                    const dayCount = Object.values(days).filter(checked => checked).length;
+                    
+                    if (!plantDayCounts[plant]) {
+                        plantDayCounts[plant] = 0;
+                    }
+                    plantDayCounts[plant] += dayCount;
+                });
+            });
+            
+            const topPlants = Object.entries(plantDayCounts)
+                .sort((a, b) => b[1] - a[1])
+                .slice(0, 5);
+            
+            if (topPlants.length === 0) {
+                topPlantsSection.innerHTML = '';
+                return;
+            }
+            
+            const medals = ['🥇', '🥈', '🥉', '4️⃣', '5️⃣'];
+            
+            topPlantsSection.innerHTML = `
+                <div class="top-plants-section">
+                    <h3>This Month's Top Plants</h3>
+                    ${topPlants.map((plant, index) => `
+                        <div class="top-plant-item">
+                            <span class="top-plant-rank">${medals[index]}</span>
+                            <div class="top-plant-info">
+                                <div class="top-plant-name">${toTitleCase(plant[0])}</div>
+                            </div>
+                            <span class="top-plant-count">${plant[1]} day${plant[1] !== 1 ? 's' : ''}</span>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+        }
+        
+        function showWeekDetail(weekKey) {
+            const weekData = historyData[weekKey];
+            
+            if (!weekData) return;
+            
+            const historyList = document.getElementById('historyList');
+            const weekDetail = document.getElementById('weekDetail');
+            const topPlantsSection = document.getElementById('topPlantsSection');
+            
+            historyList.style.display = 'none';
+            topPlantsSection.style.display = 'none';
+            weekDetail.style.display = 'block';
+            
+            const plants = Object.keys(weekData.dailyGrid).map(plant => {
+                const days = weekData.dailyGrid[plant];
+                const dayCount = Object.values(days).filter(checked => checked).length;
+                const dayNames = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
+                    .filter((_, i) => days[['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'][i]])
+                    .join(', ');
+                return { plant, dayCount, dayNames };
+            }).sort((a, b) => b.dayCount - a.dayCount);
+            
+            const countClass = weekData.plantCount >= GOAL ? 'goal-met' : '';
+            
+            weekDetail.innerHTML = `
+                <div class="week-detail">
+                    <div class="week-detail-header">
+                        <h3>${getWeekDisplay(weekKey)}</h3>
+                        <button class="back-btn" onclick="renderHistory()">← Back</button>
+                    </div>
+                    <div style="margin-bottom: 16px;">
+                        <span class="history-count ${countClass}">${weekData.plantCount} plants</span>
+                        ${weekData.plantCount >= GOAL ? ' <span style="font-size: 24px;">🎉</span>' : ''}
+                    </div>
+                    ${plants.map(p => `
+                        <div class="plant-detail-item">
+                            <span class="plant-detail-name">${toTitleCase(p.plant)}</span>
+                            <span class="plant-detail-days">${p.dayCount} day${p.dayCount !== 1 ? 's' : ''}: ${p.dayNames}</span>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+        }
+        
+        // ============================================
+        // EVENT LISTENERS
+        // ============================================
+        document.getElementById('plantInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                addPlant();
+            }
+        });
+    </script>
+</body>
+</html>
