@@ -884,12 +884,12 @@
         // ============================================
         // TODO: Replace with your Firebase config
         const firebaseConfig = {
-            apiKey: "AIzaSyAOBvc1DAIdIIQc_KnyChLBS-n5xlzKx-E",
-            authDomain: "plant-tracker-a35a1.firebaseapp.com",
-            projectId: "plant-tracker-a35a1",
-            storageBucket: "plant-tracker-a35a1.firebasestorage.app",
-            messagingSenderId: "1010461083857",
-            appId: "1:1010461083857:web:94f34e2197044363b21df0"
+            apiKey: "YOUR_API_KEY",
+            authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+            projectId: "YOUR_PROJECT_ID",
+            storageBucket: "YOUR_PROJECT_ID.appspot.com",
+            messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+            appId: "YOUR_APP_ID"
         };
 
         // Initialize Firebase
@@ -1052,11 +1052,14 @@
         }
         
         function getWeekKey() {
+            // Get current time in Mountain Time (Denver)
             const now = new Date();
-            const startOfYear = new Date(now.getFullYear(), 0, 1);
-            const days = Math.floor((now - startOfYear) / (24 * 60 * 60 * 1000));
+            const denverTime = new Date(now.toLocaleString('en-US', { timeZone: 'America/Denver' }));
+            
+            const startOfYear = new Date(denverTime.getFullYear(), 0, 1);
+            const days = Math.floor((denverTime - startOfYear) / (24 * 60 * 60 * 1000));
             const weekNumber = Math.ceil((days + startOfYear.getDay() + 1) / 7);
-            return `${now.getFullYear()}-W${weekNumber}`;
+            return `${denverTime.getFullYear()}-W${weekNumber}`;
         }
         
         function getWeekDisplay(weekKey) {
@@ -1078,7 +1081,10 @@
         }
         
         function getTodayKey() {
-            return DAYS[new Date().getDay()];
+            // Get current day in Mountain Time (Denver)
+            const now = new Date();
+            const denverTime = new Date(now.toLocaleString('en-US', { timeZone: 'America/Denver' }));
+            return DAYS[denverTime.getDay()];
         }
         
         function calculatePlantCount(dailyGrid) {
