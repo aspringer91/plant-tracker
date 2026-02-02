@@ -1052,14 +1052,20 @@
         }
         
         function getWeekKey() {
-            // Get current time in Mountain Time (Denver)
+            // Use local time and Monday-Sunday weeks
             const now = new Date();
-            const denverTime = new Date(now.toLocaleString('en-US', { timeZone: 'America/Denver' }));
             
-            const startOfYear = new Date(denverTime.getFullYear(), 0, 1);
-            const days = Math.floor((denverTime - startOfYear) / (24 * 60 * 60 * 1000));
-            const weekNumber = Math.ceil((days + startOfYear.getDay() + 1) / 7);
-            return `${denverTime.getFullYear()}-W${weekNumber}`;
+            // Calculate Monday of current week
+            const day = now.getDay();
+            const diff = now.getDate() - day + (day === 0 ? -6 : 1); // adjust when day is Sunday
+            const monday = new Date(now.getFullYear(), now.getMonth(), diff);
+            
+            // Format as YYYY-MM-DD for the Monday of this week
+            const year = monday.getFullYear();
+            const month = String(monday.getMonth() + 1).padStart(2, '0');
+            const date = String(monday.getDate()).padStart(2, '0');
+            
+            return `${year}-${month}-${date}`;
         }
         
         function getWeekDisplay(weekKey) {
@@ -1067,12 +1073,9 @@
                 weekKey = getWeekKey();
             }
             
-            const [year, weekStr] = weekKey.split('-W');
-            const weekNum = parseInt(weekStr);
-            
-            const jan1 = new Date(year, 0, 1);
-            const daysOffset = (weekNum - 1) * 7 - jan1.getDay() + 1;
-            const monday = new Date(year, 0, 1 + daysOffset);
+            // weekKey is now in format YYYY-MM-DD (the Monday of the week)
+            const parts = weekKey.split('-');
+            const monday = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
             const sunday = new Date(monday);
             sunday.setDate(monday.getDate() + 6);
             
@@ -1081,10 +1084,8 @@
         }
         
         function getTodayKey() {
-            // Get current day in Mountain Time (Denver)
-            const now = new Date();
-            const denverTime = new Date(now.toLocaleString('en-US', { timeZone: 'America/Denver' }));
-            return DAYS[denverTime.getDay()];
+            // Use local time of the user's device
+            return DAYS[new Date().getDay()];
         }
         
         function calculatePlantCount(dailyGrid) {
