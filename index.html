@@ -783,6 +783,13 @@
             
             <div class="sync-status" id="syncStatus">Synced</div>
             
+            <div style="background: #fff3cd; padding: 12px; border-radius: 6px; margin-bottom: 16px; font-size: 13px;">
+                <strong>Debug Info:</strong><br>
+                Today's date: <span id="debugToday"></span><br>
+                Current week key: <span id="debugWeekKey"></span><br>
+                Stored week key: <span id="debugStoredKey"></span>
+            </div>
+            
             <div class="week-info" id="weekInfo">Loading...</div>
             
             <div class="tabs">
@@ -849,6 +856,8 @@
                 </div>
                 
                 <button class="reset-btn" onclick="resetWeek()">Reset Week</button>
+                
+                <button style="background: #48bb78; width: 100%; margin-top: 8px;" onclick="exportBackup()">📥 Export Backup</button>
             </div>
             
             <!-- History Tab -->
@@ -878,7 +887,7 @@
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
 
-    <script>
+     <script>
         // ============================================
         // FIREBASE CONFIGURATION
         // ============================================
@@ -961,14 +970,28 @@
             unsubscribeSnapshot = userDoc.onSnapshot(async (doc) => {
                 setSyncStatus('syncing');
                 
+                const currentWeekKey = getWeekKey();
+                const today = new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+                
+                // Update debug info
+                document.getElementById('debugToday').textContent = today;
+                document.getElementById('debugWeekKey').textContent = currentWeekKey;
+                
                 if (doc.exists) {
                     const data = doc.data();
-                    currentWeekData = data.currentWeek || { weekKey: getWeekKey(), dailyGrid: {}, goalReached: false };
+                    currentWeekData = data.currentWeek || { weekKey: currentWeekKey, dailyGrid: {}, goalReached: false };
                     favoritesData = data.favorites || [];
                     historyData = data.history || {};
                     
+                    document.getElementById('debugStoredKey').textContent = currentWeekData.weekKey;
+                    
+                    console.log('Stored week key:', currentWeekData.weekKey);
+                    console.log('Current week key:', currentWeekKey);
+                    
                     // Check if we've moved to a new week
-                    if (currentWeekData.weekKey !== getWeekKey()) {
+                    if (currentWeekData.weekKey !== currentWeekKey) {
+                        console.log('Week changed! Moving to history...');
+                        
                         // Save old week to history
                         if (Object.keys(currentWeekData.dailyGrid).length > 0) {
                             historyData[currentWeekData.weekKey] = {
@@ -979,7 +1002,7 @@
                         }
                         
                         // Start new week
-                        currentWeekData = { weekKey: getWeekKey(), dailyGrid: {}, goalReached: false };
+                        currentWeekData = { weekKey: currentWeekKey, dailyGrid: {}, goalReached: false };
                         
                         // Save to Firestore
                         await userDoc.set({
@@ -990,9 +1013,13 @@
                     }
                 } else {
                     // First time user
-                    currentWeekData = { weekKey: getWeekKey(), dailyGrid: {}, goalReached: false };
+                    currentWeekData = { weekKey: currentWeekKey, dailyGrid: {}, goalReached: false };
                     favoritesData = [];
                     historyData = {};
+                    
+                    document.getElementById('debugStoredKey').textContent = 'New user';
+                    
+                    console.log('First time user, creating week:', currentWeekData.weekKey);
                     
                     await userDoc.set({
                         currentWeek: currentWeekData,
@@ -1073,7 +1100,23 @@
                 weekKey = getWeekKey();
             }
             
-            // weekKey is now in format YYYY-MM-DD (the Monday of the week)
+            // Handle old ISO week format (e.g., "2026-W5")
+            if (weekKey.includes('-W')) {
+                const [year, weekStr] = weekKey.split('-W');
+                const weekNum = parseInt(weekStr);
+                
+                // Calculate approximate Monday for that ISO week
+                const jan1 = new Date(year, 0, 1);
+                const daysOffset = (weekNum - 1) * 7 - jan1.getDay() + 1;
+                const monday = new Date(year, 0, 1 + daysOffset);
+                const sunday = new Date(monday);
+                sunday.setDate(monday.getDate() + 6);
+                
+                const options = { month: 'short', day: 'numeric' };
+                return `Week of ${monday.toLocaleDateString('en-US', options)} - ${sunday.toLocaleDateString('en-US', options)}`;
+            }
+            
+            // Handle new date format (e.g., "2026-02-03")
             const parts = weekKey.split('-');
             const monday = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
             const sunday = new Date(monday);
@@ -1508,6 +1551,32 @@
                 addPlant();
             }
         });
+        
+        // ============================================
+        // BACKUP EXPORT
+        // ============================================
+        function exportBackup() {
+            const backup = {
+                currentWeek: currentWeekData,
+                favorites: favoritesData,
+                history: historyData,
+                exportDate: new Date().toISOString()
+            };
+            
+            const dataStr = JSON.stringify(backup, null, 2);
+            const dataBlob = new Blob([dataStr], { type: 'application/json' });
+            
+            const url = URL.createObjectURL(dataBlob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `plant-tracker-backup-${new Date().toISOString().split('T')[0]}.json`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+            
+            showToast('Backup exported successfully!');
+        }
     </script>
 </body>
 </html>
